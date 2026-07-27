@@ -13,12 +13,13 @@ flowchart LR
     I --> P["TXT / PDF parser"]
     P --> K["Heading-aware chunker"]
     K --> E["Configurable embedding model"]
-    E --> V[("PostgreSQL + PGVector")]
+    E --> V[("PostgreSQL: PGVector + full-text search")]
 
     Q["GET /ask"] --> R["RAG service"]
     R --> EQ["Query embedding"]
     EQ --> V
-    V --> B["Threshold + context budget"]
+    V --> H["Hybrid rank fusion"]
+    H --> B["Threshold + context budget"]
     B --> L["Configurable chat model"]
     L --> A["Grounded answer + sources"]
 ```
@@ -33,7 +34,8 @@ this service over HTTP; it does not need to be embedded in the Java process.
 - Spring AI 2.0 provider abstractions
 - OpenAI embeddings by default: `text-embedding-3-small` (1,536 dimensions)
 - OpenAI answer generation by default: `gpt-5.6-luna`
-- PostgreSQL 17 with PGVector, cosine distance, and an HNSW index
+- PostgreSQL 17 with PGVector cosine search, an HNSW vector index, and a GIN
+  full-text index
 - Flyway migrations, PDFBox 3, JUnit, Mockito, and Testcontainers
 
 ## Quick start
@@ -233,12 +235,26 @@ such as overlap and minimum chunk sizes being smaller than the maximum chunk siz
 - The same configured embedding model and dimension are used for chunks and queries.
 - Gemini receives distinct `RETRIEVAL_DOCUMENT` and `RETRIEVAL_QUERY` task types.
 - Embeddings are normalized before storage/search.
-- Retrieval uses top-K 5 and a configurable minimum score of 0.65.
+- Retrieval takes up to 20 vector candidates and 20 PostgreSQL English full-text
+  candidates, then merges and reranks their union.
+- A candidate is eligible when either its cosine similarity or lexical query-term
+  coverage clears the configurable relevance threshold. This prevents the absence
+  of an exact keyword from suppressing a valid semantic match.
+- Eligible candidates are combined using weighted Reciprocal Rank Fusion: 70%
+  vector rank and 30% full-text rank. Headings receive higher PostgreSQL
+  full-text weight when selecting lexical candidates.
+- The final result uses top-K 5 and a default per-channel relevance threshold of
+  0.50.
 - Duplicate chunks are removed and ranked chunks are added until the 4,000-token
   context budget is reached.
 - Retrieved text is explicitly treated as untrusted data, and the prompt prohibits
   outside knowledge and unsupported citations.
 - No relevant evidence means a deterministic refusal without an answer-model call.
+
+The retrieval controls are `RAG_RETRIEVAL_TOP_K`,
+`RAG_RETRIEVAL_CANDIDATE_K`, `RAG_RETRIEVAL_MINIMUM_SCORE`,
+`RAG_RETRIEVAL_VECTOR_WEIGHT`, and `RAG_RETRIEVAL_TEXT_WEIGHT`. The two weights
+must add up to `1.0`, and the candidate count must be at least the final top-K.
 
 ## Local development and tests
 
@@ -264,8 +280,8 @@ Run the test suite:
 
 The integration suite uses `pgvector/pgvector:pg17` through Testcontainers. It
 verifies full Spring startup with both AI providers, automatic Flyway migration,
-vector insertion, and cosine retrieval; Docker-dependent tests are skipped when
-Docker is unavailable. Unit tests cover chunk boundaries and overlap, page
+vector insertion, Flyway full-text migration, and hybrid retrieval;
+Docker-dependent tests are skipped when Docker is unavailable. Unit tests cover chunk boundaries and overlap, page
 extraction, context budgeting/deduplication, and the no-evidence path.
 
 GitHub Actions runs the same Maven verification suite on every push and pull
@@ -295,6 +311,6 @@ The second command is destructive. Flyway recreates the schema on the next start
 
 The exercise intentionally omits authentication, tenant isolation, OCR, raw-file
 object storage, asynchronous ingestion, delete/re-index APIs, streaming responses,
-hybrid search, and reranking. Add those only after measuring the baseline. For a
+and a learned reranker. Add those only after measuring the baseline. For a
 chatbot UI, keep conversation state and LangGraph orchestration in a separate service
 and use this service as the stateless evidence-retrieval and answering boundary.

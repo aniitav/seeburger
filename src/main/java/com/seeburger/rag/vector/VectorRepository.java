@@ -19,6 +19,7 @@ public interface VectorRepository {
     );
 
     List<RetrievedChunk> search(
+            String query,
             float[] queryEmbedding,
             UUID documentId,
             int topK,

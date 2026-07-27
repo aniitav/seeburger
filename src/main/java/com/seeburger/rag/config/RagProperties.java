@@ -41,8 +41,22 @@ public record RagProperties(
 
     public record Retrieval(
             @Min(1) @Max(20) int topK,
-            @DecimalMin("0.0") @DecimalMax("1.0") double minimumScore
-    ) {}
+            @Min(1) @Max(100) int candidateK,
+            @DecimalMin("0.0") @DecimalMax("1.0") double minimumScore,
+            @DecimalMin("0.0") @DecimalMax("1.0") double vectorWeight,
+            @DecimalMin("0.0") @DecimalMax("1.0") double textWeight
+    ) {
+        public Retrieval {
+            if (candidateK < topK) {
+                throw new IllegalArgumentException("rag.retrieval.candidate-k must be at least top-k");
+            }
+            if (Math.abs(vectorWeight + textWeight - 1.0) > 0.000_001) {
+                throw new IllegalArgumentException(
+                        "rag.retrieval.vector-weight and text-weight must add up to 1.0"
+                );
+            }
+        }
+    }
 
     public record Context(@Min(100) @Max(20_000) int maxTokens) {}
 

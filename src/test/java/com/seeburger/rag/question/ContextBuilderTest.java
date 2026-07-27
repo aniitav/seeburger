@@ -48,7 +48,7 @@ class ContextBuilderTest {
         return new RagProperties(
                 new RagProperties.Upload(10_000, 100_000),
                 new RagProperties.Chunk(800, 100, 40),
-                new RagProperties.Retrieval(5, 0.65),
+                new RagProperties.Retrieval(5, 20, 0.50, 0.7, 0.3),
                 new RagProperties.Context(contextTokens),
                 new RagProperties.Ai(
                         "openai", "text-embedding-3-small", 1536, 100,

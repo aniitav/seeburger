@@ -23,6 +23,14 @@ public class SpringAiAnswerGenerator implements AnswerGenerator {
             Cite every supported factual claim with [Source N].
             Never invent names, values, procedures, or citations.
             If sources conflict, describe the conflict and cite each relevant source.
+            You may perform simple arithmetic and direct comparisons using values
+            explicitly stated in the context. For yes-or-no questions, begin with
+            "Yes" or "No" when the conclusion follows directly from those facts.
+            Treat a stated allowance plus its stated carry-over limit as the maximum
+            available under that policy unless the context identifies another
+            allowance. Interpret "more than N" as a strict numeric comparison: if
+            the calculated maximum is less than or equal to N, answer "No".
+            Ensure the opening yes-or-no answer agrees with the explanation.
             If the context is insufficient, answer exactly:
             I could not find enough information in the uploaded documents.
             Keep the answer concise and directly address the question.

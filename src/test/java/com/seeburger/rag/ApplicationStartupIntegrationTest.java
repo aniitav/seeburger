@@ -52,10 +52,26 @@ class ApplicationStartupIntegrationTest {
                 "SELECT to_regclass('public.document_chunks')::text",
                 String.class
         );
+        var searchVectorColumn = jdbc.queryForObject(
+                """
+                SELECT count(*)
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                  AND table_name = 'document_chunks'
+                  AND column_name = 'search_vector'
+                """,
+                Integer.class
+        );
+        var fullTextIndex = jdbc.queryForObject(
+                "SELECT to_regclass('public.idx_document_chunks_search_vector_gin')::text",
+                String.class
+        );
 
-        assertThat(migrationCount).isEqualTo(1);
+        assertThat(migrationCount).isEqualTo(2);
         assertThat(vectorVersion).isNotBlank();
         assertThat(documentTable).isEqualTo("documents");
         assertThat(chunkTable).isEqualTo("document_chunks");
+        assertThat(searchVectorColumn).isEqualTo(1);
+        assertThat(fullTextIndex).isEqualTo("idx_document_chunks_search_vector_gin");
     }
 }

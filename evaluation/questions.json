@@ -15,6 +15,16 @@
     "answerable": true
   },
   {
+    "question": "Can an employee take more than 25 days leave?",
+    "expectedHeading": "Annual Leave",
+    "answerable": true
+  },
+  {
+    "question": "Can an employee take more than 25 days holiday?",
+    "expectedHeading": "Annual Leave",
+    "answerable": true
+  },
+  {
     "question": "How many remote-work days are allowed each week?",
     "expectedHeading": "Remote Work",
     "answerable": true

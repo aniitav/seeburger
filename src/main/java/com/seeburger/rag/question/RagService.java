@@ -41,6 +41,7 @@ public class RagService {
         var question = validateQuestion(rawQuestion);
         var queryEmbedding = embeddingGateway.embedQuery(question);
         var candidates = vectorRepository.search(
+                question,
                 queryEmbedding,
                 documentId,
                 properties.retrieval().topK(),
@@ -52,6 +53,9 @@ public class RagService {
         }
 
         var answer = answerGenerator.answer(question, context.promptContext());
+        if (NO_EVIDENCE.equals(answer)) {
+            return new AnswerResponse(question, NO_EVIDENCE, false, java.util.List.of());
+        }
         var sources = context.sources().stream()
                 .map(source -> new SourceResponse(
                         source.number(),
