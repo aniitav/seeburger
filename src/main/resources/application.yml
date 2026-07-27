@@ -1,0 +1,79 @@
+spring:
+  application:
+    name: rag-pipeline-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/rag}
+    username: ${POSTGRES_USER:rag}
+    password: ${POSTGRES_PASSWORD:rag}
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 5000
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  ai:
+    model:
+      embedding:
+        text: ${RAG_EMBEDDING_PROVIDER:openai}
+      chat: ${RAG_CHAT_PROVIDER:openai}
+    google:
+      genai:
+        embedding:
+          api-key: ${GEMINI_API_KEY:}
+          text:
+            model: ${RAG_EMBEDDING_MODEL:gemini-embedding-001}
+            dimensions: ${RAG_EMBEDDING_DIMENSIONS:1536}
+            task-type: RETRIEVAL_DOCUMENT
+            auto-truncate: false
+        api-key: ${GEMINI_API_KEY:}
+        chat:
+          model: ${RAG_CHAT_MODEL:gpt-5.6-luna}
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      embedding:
+        model: ${RAG_EMBEDDING_MODEL:text-embedding-3-small}
+        dimensions: ${RAG_EMBEDDING_DIMENSIONS:1536}
+      chat:
+        model: ${RAG_CHAT_MODEL:gpt-5.6-luna}
+  flyway:
+    enabled: true
+
+server:
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+rag:
+  upload:
+    max-bytes: ${RAG_MAX_UPLOAD_BYTES:10485760}
+    max-document-tokens: ${RAG_MAX_DOCUMENT_TOKENS:100000}
+  chunk:
+    max-tokens: ${RAG_CHUNK_MAX_TOKENS:800}
+    overlap-tokens: ${RAG_CHUNK_OVERLAP_TOKENS:100}
+    min-tokens: ${RAG_CHUNK_MIN_TOKENS:40}
+  retrieval:
+    top-k: ${RAG_RETRIEVAL_TOP_K:5}
+    minimum-score: ${RAG_RETRIEVAL_MINIMUM_SCORE:0.65}
+  context:
+    max-tokens: ${RAG_CONTEXT_MAX_TOKENS:4000}
+  ai:
+    embedding-provider: ${RAG_EMBEDDING_PROVIDER:openai}
+    embedding-model: ${RAG_EMBEDDING_MODEL:text-embedding-3-small}
+    embedding-dimensions: ${RAG_EMBEDDING_DIMENSIONS:1536}
+    embedding-batch-size: ${RAG_EMBEDDING_BATCH_SIZE:100}
+    chat-provider: ${RAG_CHAT_PROVIDER:openai}
+    chat-model: ${RAG_CHAT_MODEL:gpt-5.6-luna}
+    max-answer-tokens: ${RAG_MAX_ANSWER_TOKENS:1000}
+
+logging:
+  pattern:
+    level: "%5p [traceId=%X{traceId:-}]"

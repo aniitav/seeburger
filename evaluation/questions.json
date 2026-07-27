@@ -1,0 +1,37 @@
+[
+  {
+    "question": "How many annual leave days do full-time employees receive?",
+    "expectedHeading": "Annual Leave",
+    "answerable": true
+  },
+  {
+    "question": "How many unused leave days can be carried over?",
+    "expectedHeading": "Annual Leave",
+    "answerable": true
+  },
+  {
+    "question": "Who approves leave requests?",
+    "expectedHeading": "Annual Leave",
+    "answerable": true
+  },
+  {
+    "question": "How many remote-work days are allowed each week?",
+    "expectedHeading": "Remote Work",
+    "answerable": true
+  },
+  {
+    "question": "Does the company reimburse home internet expenses?",
+    "expectedHeading": "Remote Work",
+    "answerable": true
+  },
+  {
+    "question": "What is the annual travel budget?",
+    "expectedHeading": null,
+    "answerable": false
+  },
+  {
+    "question": "What health insurance provider does the company use?",
+    "expectedHeading": null,
+    "answerable": false
+  }
+]
